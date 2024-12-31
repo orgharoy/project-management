@@ -21,9 +21,9 @@ const BoardStatus: React.FC<BoardStatusProps> = ({ status }) => {
     <div className="flex flex-col flex-grow relative w-80 border flex-shrink-0 rounded-md pt-2 pb-3 shadow-sm h-[calc(100vh-270px)]">
       <div className="flex justify-between items-center mb-3 mx-3">
         <div className="flex items-center gap-3">
-          <status.icon className="h-5 w-5" />
+          <status.icon className="h-4 w-4" />
           <div className="flex gap-2">
-            <span className="font-semibold">{status.label}</span>
+            <span className="font-semibold text-sm">{status.label}</span>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>

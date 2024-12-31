@@ -18,7 +18,7 @@ const ProjectComments = () => {
             onChange={setComment}
             className="min-h-[60px]"
           />
-          <Button>Comment</Button>
+          <Button size="sm">Comment</Button>
         </div>
       </div>
 
