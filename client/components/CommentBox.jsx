@@ -7,7 +7,7 @@ const CommentBox = () => {
   return (
     <div className="flex gap-3">
       <div className="w-7 h-7 bg-primary rounded-full flex-shrink-0 flex-groow-0 my-1" />
-      <div className="">
+      <div className="space-y-1">
         <div className="bg-muted px-3 py-2 rounded-md space-y-1">
           <h6 className="font-semibold text-muted-foreground">
             User Name

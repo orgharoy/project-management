@@ -24,7 +24,7 @@ const ProjectComments = () => {
 
       <div className="space-y-5">
         <CommentBox />
-        {/* <CommentBox /> */}
+        <CommentBox />
       </div>
     </div>
   );
