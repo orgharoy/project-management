@@ -25,6 +25,7 @@ import {
 import { cn } from "@/lib/utils";
 import { LoaderCircle } from "lucide-react";
 import Link from "next/link";
+import { authClient } from "@/lib/auth-client";
 
 const page = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -47,7 +48,14 @@ const page = () => {
   });
 
   async function onSubmit(values: RegisterNewUserFormValues) {
-    console.log(values);
+    const { data, error } = await authClient.signUp.email({
+      email: values.email, 
+        password: values.password, 
+        name: values.fullName, 
+        image: "https://example.com/image.png", 
+    });
+    
+    console.log({data, error})
   }
 
   return (
