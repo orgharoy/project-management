@@ -48,14 +48,19 @@ const page = () => {
   });
 
   async function onSubmit(values: RegisterNewUserFormValues) {
+    setIsLoading(true);
     const { data, error } = await authClient.signUp.email({
-      email: values.email, 
-        password: values.password, 
-        name: values.fullName, 
-        image: "https://example.com/image.png", 
+      email: values.email,
+      password: values.password,
+      name: values.fullName,
+      image: "https://example.com/image.png",
     });
-    
-    console.log({data, error})
+
+    if (error) {
+      alert(error.message);
+    }
+
+    setIsLoading(false);
   }
 
   return (
