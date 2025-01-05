@@ -2,6 +2,8 @@ import { betterAuth } from "better-auth";
 import { db } from "./db/drizzle";
 import { users, sessions, accounts, verifications } from "./db/schema";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { sendEmail } from "@/lib/email/emailService.js"
+import { VERFICATION_EMAIL_TEMPLATE } from "@/lib/email/emailTemplates.js"
 
 export const auth = betterAuth({
   emailAndPassword: {
@@ -13,7 +15,7 @@ export const auth = betterAuth({
       await sendEmail({
         to: user.email,
         subject: "Verify your email address",
-        text: `Click the link to verify your email: ${url}`,
+        html: VERFICATION_EMAIL_TEMPLATE(user.name, url),
       });
     },
   },
