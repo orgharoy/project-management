@@ -8,9 +8,11 @@ import { VERFICATION_EMAIL_TEMPLATE } from "@/lib/email/emailTemplates.js"
 export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
+    requireEmailVerification: true,
     autoSignIn: false,
   },
   emailVerification: {
+    sendOnSignUp: true,
     sendVerificationEmail: async ({ user, url, token }, request) => {
       await sendEmail({
         to: user.email,
