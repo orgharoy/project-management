@@ -53,11 +53,13 @@ const page = () => {
       email: values.email,
       password: values.password,
       name: values.fullName,
-      image: "https://example.com/image.png",
+      image: undefined,
     });
 
     if (error) {
-      alert(error.message);
+      alert(error.message === undefined ? 'Error creating account' : error.message);
+    } else {
+      alert("successfully created account!")
     }
 
     setIsLoading(false);
