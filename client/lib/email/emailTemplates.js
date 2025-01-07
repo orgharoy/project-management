@@ -1,7 +1,7 @@
 export const VERFICATION_EMAIL_TEMPLATE = (
-    username,
-    verficationLink
-  ) => `<!DOCTYPE html>
+  username,
+  verficationLink
+) => `<!DOCTYPE html>
   <html>
   <head>
   
@@ -99,7 +99,7 @@ export const VERFICATION_EMAIL_TEMPLATE = (
   
     <!-- start preheader -->
     <div class="preheader" style="display: none; max-width: 0; max-height: 0; overflow: hidden; font-size: 1px; line-height: 1px; color: #fff; opacity: 0;">
-      A preheader is the short summary text that follows the subject line when an email is viewed in the inbox.
+      Verfiy your email address wiht *Company Name*
     </div>
     <!-- end preheader -->
   
@@ -234,7 +234,7 @@ export const VERFICATION_EMAIL_TEMPLATE = (
             <!-- start permission -->
             <tr>
               <td align="center" bgcolor="#e9ecef" style="padding: 12px 24px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; color: #666;">
-                <p style="margin: 0;">You received this email because we received a request for [type_of_action] for your account. If you didn't request [type_of_action] you can safely delete this email.</p>
+                <p style="margin: 0;">You received this email because we received a request for email verification for your account. If you didn't request this action you can safely delete this email.</p>
               </td>
             </tr>
             <!-- end permission -->

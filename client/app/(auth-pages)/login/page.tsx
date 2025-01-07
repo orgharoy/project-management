@@ -1,19 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  RiFacebookFill,
-  RiGithubFill,
-  RiGoogleFill,
-  RiTwitterXFill,
-} from "@remixicon/react";
+import { RiGoogleFill } from "@remixicon/react";
 import { loginFormSchema } from "@/lib/formSchemas";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
-
 import {
   Form,
   FormControl,
@@ -25,6 +19,8 @@ import {
 import { cn } from "@/lib/utils";
 import { LoaderCircle } from "lucide-react";
 import Link from "next/link";
+import { authClient } from "@/lib/auth-client";
+import { toast } from "sonner";
 
 const page = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -45,8 +41,29 @@ const page = () => {
   async function onSubmit(values: LoginUserFormValue) {
     setIsLoading(true);
     try {
-      console.log(values);
+      await authClient.signIn.email(
+        {
+          email: values.email,
+          password: values.password,
+          callbackURL: "/",
+        },
+        {
+          onError: async (ctx) => {
+            if (ctx.error.status === 403) {
+              toast.error("Please verify your email before logging in.");
+              await authClient.sendVerificationEmail({
+                email: values.email,
+                callbackURL: "/email-verification?error=none",
+              });
+            } else {
+              toast.error(ctx.error.message);
+            }
+          },
+        }
+      );
     } catch (err) {
+      console.log(err);
+      toast.error("An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -131,24 +148,14 @@ const page = () => {
             aria-hidden="true"
           />
         </Button>
-        {/* <Button
-          className="flex-1"
-          variant="outline"
-          aria-label="Login with Facebook"
-          size="icon"
-        >
-          <RiFacebookFill
-            className="text-[#1877f2] dark:text-primary"
-            size={16}
-            aria-hidden="true"
-          />
-        </Button> */}
       </div>
 
       <p className="mt-3 text-center text-sm">
         Don't have an account?{" "}
         <span className="underline">
-          <Link href="/sign-up">Signup instead</Link>
+          <Link href="/sign-up" prefetch={true}>
+            Signup instead
+          </Link>
         </span>
       </p>
     </div>

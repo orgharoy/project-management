@@ -10,6 +10,9 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Project Management | Dashboard",
@@ -21,6 +24,15 @@ export default async function DashboardLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   const cookieStore = await cookies();
   const defaultOpen = cookieStore.get("sidebar:state")?.value === "true";
+
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session) {
+    redirect("/login");
+    return;
+  }
 
   return (
     <SidebarProvider defaultOpen={defaultOpen}>
