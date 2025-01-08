@@ -1,19 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  RiFacebookFill,
-  RiGithubFill,
-  RiGoogleFill,
-  RiTwitterXFill,
-} from "@remixicon/react";
+import { RiGoogleFill } from "@remixicon/react";
+import { z } from "zod";
 import { loginFormSchema } from "@/lib/formSchemas";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
-
 import {
   Form,
   FormControl,
@@ -22,31 +17,54 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { LoaderCircle } from "lucide-react";
 import Link from "next/link";
+import { authClient } from "@/lib/auth-client";
+import { toast } from "sonner";
 
 const page = () => {
   const [isLoading, setIsLoading] = useState(false);
 
-  type LoginUserFormValue = {
-    email: string;
-    password: string;
-  };
+  type LoginFormValues = z.infer<typeof loginFormSchema>;
 
-  const form = useForm<LoginUserFormValue>({
+  const form = useForm({
     resolver: zodResolver(loginFormSchema),
     defaultValues: {
       email: "",
       password: "",
+      rememberMe: true,
     },
   });
 
-  async function onSubmit(values: LoginUserFormValue) {
+  async function onSubmit(values: LoginFormValues) {
     setIsLoading(true);
     try {
-      console.log(values);
+      await authClient.signIn.email(
+        {
+          email: values.email,
+          password: values.password,
+          rememberMe: values.rememberMe,
+          callbackURL: "/",
+        },
+        {
+          onError: async (ctx) => {
+            if (ctx.error.status === 403) {
+              toast.error("Please verify your email before logging in.");
+              await authClient.sendVerificationEmail({
+                email: values.email,
+                callbackURL: "/email-verification?error=none",
+              });
+            } else {
+              toast.error(ctx.error.message);
+            }
+          },
+        }
+      );
     } catch (err) {
+      console.log(err);
+      toast.error("An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -82,7 +100,7 @@ const page = () => {
             control={form.control}
             name="password"
             render={({ field }) => (
-              <FormItem className={cn("mb-2")}>
+              <FormItem className={cn("mb-6")}>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
                   <PasswordInput placeholder="" {...field} />
@@ -93,14 +111,23 @@ const page = () => {
             )}
           />
 
-          <div className="flex justify-end mb-4">
-            <Link
-              href="/forgot-password"
-              className=" text-muted-foreground text-sm text-end hover:underline"
-            >
-              Forgot your password?
-            </Link>
-          </div>
+          <FormField
+            control={form.control}
+            name="rememberMe"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md mb-2">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>Keep me logged in</FormLabel>
+                </div>
+              </FormItem>
+            )}
+          />
 
           <div className="w-full flex justify-center">
             <Button disabled={isLoading} type="submit" className="w-full mt-4">
@@ -118,6 +145,15 @@ const page = () => {
         </form>
       </Form>
 
+      <div className="flex justify-start mb-4">
+        <Link
+          href="/forgot-password"
+          className=" text-muted-foreground text-sm text-end hover:underline"
+        >
+          Forgot your password?
+        </Link>
+      </div>
+
       <div className="flex flex-wrap gap-2 w-full">
         <Button
           className="flex-1"
@@ -131,24 +167,14 @@ const page = () => {
             aria-hidden="true"
           />
         </Button>
-        {/* <Button
-          className="flex-1"
-          variant="outline"
-          aria-label="Login with Facebook"
-          size="icon"
-        >
-          <RiFacebookFill
-            className="text-[#1877f2] dark:text-primary"
-            size={16}
-            aria-hidden="true"
-          />
-        </Button> */}
       </div>
 
       <p className="mt-3 text-center text-sm">
         Don't have an account?{" "}
         <span className="underline">
-          <Link href="/sign-up">Signup instead</Link>
+          <Link href="/sign-up" prefetch={true}>
+            Signup instead
+          </Link>
         </span>
       </p>
     </div>
