@@ -16,6 +16,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { LoaderCircle } from "lucide-react";
 import Link from "next/link";
@@ -28,6 +29,7 @@ const page = () => {
   type LoginUserFormValue = {
     email: string;
     password: string;
+    rememberMe: boolean;
   };
 
   const form = useForm<LoginUserFormValue>({
@@ -35,6 +37,7 @@ const page = () => {
     defaultValues: {
       email: "",
       password: "",
+      rememberMe: true,
     },
   });
 
@@ -45,6 +48,7 @@ const page = () => {
         {
           email: values.email,
           password: values.password,
+          rememberMe: values.rememberMe,
           callbackURL: "/",
         },
         {
@@ -99,7 +103,7 @@ const page = () => {
             control={form.control}
             name="password"
             render={({ field }) => (
-              <FormItem className={cn("mb-2")}>
+              <FormItem className={cn("mb-6")}>
                 <FormLabel>Password</FormLabel>
                 <FormControl>
                   <PasswordInput placeholder="" {...field} />
@@ -110,14 +114,23 @@ const page = () => {
             )}
           />
 
-          <div className="flex justify-end mb-4">
-            <Link
-              href="/forgot-password"
-              className=" text-muted-foreground text-sm text-end hover:underline"
-            >
-              Forgot your password?
-            </Link>
-          </div>
+          <FormField
+            control={form.control}
+            name="rememberMe"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md mb-2">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>Keep me logged in</FormLabel>
+                </div>
+              </FormItem>
+            )}
+          />
 
           <div className="w-full flex justify-center">
             <Button disabled={isLoading} type="submit" className="w-full mt-4">
@@ -134,6 +147,15 @@ const page = () => {
           </div>
         </form>
       </Form>
+
+      <div className="flex justify-start mb-4">
+        <Link
+          href="/forgot-password"
+          className=" text-muted-foreground text-sm text-end hover:underline"
+        >
+          Forgot your password?
+        </Link>
+      </div>
 
       <div className="flex flex-wrap gap-2 w-full">
         <Button
