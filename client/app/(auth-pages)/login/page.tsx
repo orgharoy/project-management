@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { RiGoogleFill } from "@remixicon/react";
+import { z } from "zod";
 import { loginFormSchema } from "@/lib/formSchemas";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,13 +27,9 @@ import { toast } from "sonner";
 const page = () => {
   const [isLoading, setIsLoading] = useState(false);
 
-  type LoginUserFormValue = {
-    email: string;
-    password: string;
-    rememberMe: boolean;
-  };
+  type LoginFormValues = z.infer<typeof loginFormSchema>;
 
-  const form = useForm<LoginUserFormValue>({
+  const form = useForm({
     resolver: zodResolver(loginFormSchema),
     defaultValues: {
       email: "",
@@ -41,7 +38,7 @@ const page = () => {
     },
   });
 
-  async function onSubmit(values: LoginUserFormValue) {
+  async function onSubmit(values: LoginFormValues) {
     setIsLoading(true);
     try {
       await authClient.signIn.email(

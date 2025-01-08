@@ -1,167 +1,229 @@
 "use client";
 
 import React, { useState } from "react";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { ShieldAlert, LoaderCircle, CircleCheckBig, Key } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
+import { toast } from "sonner";
+import { useSearchParams } from "next/navigation";
+
+import { forgotPasswordFormSchema } from "@/lib/formSchemas";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSlot,
-} from "@/components/ui/input-otp";
-import { REGEXP_ONLY_DIGITS } from "input-otp";
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { z } from "zod";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, ArrowRight } from "lucide-react";
-import { RiErrorWarningFill } from "@remixicon/react";
-
-const page = () => {
-  return (
-    <div className="bg-background shadow-md px-3 py-6 sm:p-8 border sm:max-w-sm w-full space-y-5 rounded-xl">
-      <div className="mb-10 text-center">
-        <h5 className="font-bold text-3xl">Forgot Password?</h5>
-        <p className="text-muted-foreground text-sm font-light my-1">
-          Reset your password
-        </p>
-      </div>
-
-      <ForgotPassword />
-    </div>
-  );
-};
-
-export default page;
+import { PasswordInput } from "@/components/ui/password-input";
+import Link from "next/link";
 
 const ForgotPassword = () => {
-  const [currentTab, setCurrentTab] = useState(0);
-  const [email, setEmail] = useState("");
-  const [verificationCode, setVerificationCode] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [email, setEmail] = useState<string>("");
+  const [sendEmailSuccess, setSendEmailSuccess] = useState<boolean>(false);
+  const [resetPasswordSuccess, setResetPasswordSuccess] =
+    useState<boolean>(false);
+  const error = useSearchParams().get("error");
+  const token = useSearchParams().get("token");
 
-  const handleNext = () => {
-    setCurrentTab((prev) => Math.min(prev + 1, 2));
+  type ForgotPasswordFormValues = z.infer<typeof forgotPasswordFormSchema>;
+
+  const form = useForm({
+    resolver: zodResolver(forgotPasswordFormSchema),
+    defaultValues: {
+      newPassword: "",
+      confirmPassword: "",
+    },
+  });
+
+  const handleRequestPasswordReset = async () => {
+    setIsLoading(true);
+    try {
+      const { data, error } = await authClient.forgetPassword({
+        email,
+        redirectTo: "/forgot-password?error=none",
+      });
+      setSendEmailSuccess(true);
+    } catch (ex) {
+      toast.error("An unexpected error occured. Please try again later.");
+      console.error(ex);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handlePrevious = () => {
-    setCurrentTab((prev) => Math.max(prev - 1, 0));
-  };
+  async function onSubmit(values: ForgotPasswordFormValues) {
+    setIsLoading(true);
+    try {
+      const { data, error } = await authClient.resetPassword(
+        {
+          newPassword: values.newPassword,
+        },
+        {
+          onError: (ctx) => {
+            toast.error(ctx.error.message);
+          },
+        }
+      );
 
-  const handleResetPasswordClick = () => {
-    console.log({ email, verificationCode, newPassword, confirmPassword });
-  };
+      if (!error) {
+        setResetPasswordSuccess(true);
+      }
+    } catch (err) {
+      console.log(err);
+      toast.error("An error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
-  if (currentTab === 0) {
+  if (error === "INVALID_TOKEN") {
     return (
-      <div>
-        <Label htmlFor="email" className="block mb-4">
-          Enter your email:
-        </Label>
-        <Input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="mb-6"
-          required
-        />
-        <div className="flex justify-end">
-          <Button
-            onClick={handleNext}
-            variant="expandIcon"
-            Icon={ArrowRight}
-            iconplacement="right"
-          >
-            Next
-          </Button>
-        </div>
+      <div className="bg-background shadow-md p-3 sm:px-10 sm:py-10 border sm:max-w-sm w-full space-y-5 rounded-xl flex flex-col items-center justify-center">
+        <ShieldAlert size={48} className="text-primary" />
+        <h1 className="text-2xl font-bold py-2">Invalid Token</h1>
+        <p className="text-center w-full">
+          The token you are trying to use is invalid. Please try again.
+        </p>
       </div>
     );
-  } else if (currentTab === 1) {
+  } else if (error === "none" && token) {
     return (
-      <div>
-        <Label htmlFor="verificationCode" className="block mb-4">
-          Enter verification code sent to your email:
-        </Label>
-        <InputOTP
-          maxLength={6}
-          pattern={REGEXP_ONLY_DIGITS}
-          value={verificationCode}
-          onChange={(value) => setVerificationCode(value)}
-        >
-          <InputOTPGroup id="verificationCode" className={cn("w-full mb-6")}>
-            <InputOTPSlot index={0} />
-            <InputOTPSlot index={1} />
-            <InputOTPSlot index={2} />
-            <InputOTPSlot index={3} />
-            <InputOTPSlot index={4} />
-            <InputOTPSlot index={5} />
-          </InputOTPGroup>
-        </InputOTP>
-        <div className="flex justify-between">
-          <Button
-            onClick={handlePrevious}
-            variant="expandIcon"
-            Icon={ArrowLeft}
-            iconplacement="left"
-          >
-            Back
-          </Button>
-          <Button
-            onClick={handleNext}
-            variant="expandIcon"
-            Icon={ArrowRight}
-            iconplacement="right"
-          >
-            Next
-          </Button>
-        </div>
-      </div>
-    );
-  } else if (currentTab === 2) {
-    return (
-      <div>
-        <Label htmlFor="newPassword" className="block mb-4">
-          Enter new password:
-        </Label>
-        <Input
-          id="newPassword"
-          type="password"
-          value={newPassword}
-          onChange={(e) => setNewPassword(e.target.value)}
-          className="mb-4"
-          required
-        />
-        <Label htmlFor="confirmNewPassword" className="block mb-4">
-          Confirm new password:
-        </Label>
-        <Input
-          id="confirmNewPassword"
-          type="password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          className="mb-6"
-          required
-        />
-        <div className="flex justify-between">
-          <Button
-            onClick={handlePrevious}
-            variant="expandIcon"
-            Icon={ArrowLeft}
-            iconplacement="left"
-          >
-            Back
-          </Button>
-          <Button onClick={handleResetPasswordClick}>Reset Password</Button>
-        </div>
+      <div className="bg-background shadow-md p-3 sm:px-10 sm:py-10 border sm:max-w-sm w-full space-y-5 rounded-xl flex flex-col items-center justify-center">
+        {resetPasswordSuccess ? (
+          <CircleCheckBig size={48} className="text-primary" />
+        ) : (
+          <Key size={48} className="text-primary" />
+        )}
+        <h1 className="text-2xl font-bold py-2 w-full text-center">
+          Reset Password {resetPasswordSuccess && " Successful"}
+        </h1>
+        {resetPasswordSuccess ? (
+          <p className="w-full text-center">
+            Your password has been reset successfully.
+            <br />
+            <span>
+              <Link href="/login" className="underline cursor-pointer">
+                Go to login
+              </Link>
+            </span>
+          </p>
+        ) : (
+          <Form {...form}>
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="mx-auto w-full"
+            >
+              <FormField
+                control={form.control}
+                name="newPassword"
+                render={({ field }) => (
+                  <FormItem className={cn("mb-6")}>
+                    <FormLabel>New Password</FormLabel>
+                    <FormControl>
+                      <PasswordInput placeholder="" {...field} />
+                    </FormControl>
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem className={cn("mb-6")}>
+                    <FormLabel>Confirm Password</FormLabel>
+                    <FormControl>
+                      <PasswordInput placeholder="" {...field} />
+                    </FormControl>
+
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="w-full flex justify-center">
+                <Button
+                  disabled={isLoading}
+                  type="submit"
+                  className="w-full mt-4"
+                >
+                  {isLoading && (
+                    <LoaderCircle
+                      className="-ms-1 me-2 animate-spin"
+                      size={16}
+                      strokeWidth={2}
+                      aria-hidden="true"
+                    />
+                  )}
+                  Update Password
+                </Button>
+              </div>
+            </form>
+          </Form>
+        )}
       </div>
     );
   } else {
     return (
-      <div className="text-center flex flex-col items-center rounded-md bg-muted p-4">
-        <RiErrorWarningFill />
-        <h3 className="font-semibold mt-3 mb-1">Unexpected Error Occured</h3>
-        <p className="text-sm text-muted-foreground">Contact Administrator</p>
+      <div className="bg-background shadow-md p-3 sm:px-10 sm:py-10 border sm:max-w-sm w-full space-y-5 rounded-xl flex flex-col items-center justify-center">
+        {sendEmailSuccess ? (
+          <CircleCheckBig size={48} className="text-primary" />
+        ) : (
+          <ShieldAlert size={48} className="text-primary" />
+        )}
+        <h1 className="text-2xl font-bold py-2">Forgot Password?</h1>
+        {sendEmailSuccess ? (
+          <p className="text-center w-full">
+            We have sent a password reset link to <b>{email}</b>
+          </p>
+        ) : (
+          <>
+            <Label htmlFor="email" className="w-full text-center leading-5">
+              Enter your mail and we will send you a link to reset your password
+            </Label>
+            <div className="w-full pt-6">
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+              <div className="flex flex-wrap gap-2 w-full">
+                <Button
+                  disabled={isLoading}
+                  onClick={handleRequestPasswordReset}
+                  type="submit"
+                  className="w-full mt-4"
+                >
+                  {isLoading && (
+                    <LoaderCircle
+                      className="-ms-1 me-2 animate-spin"
+                      size={16}
+                      strokeWidth={2}
+                      aria-hidden="true"
+                    />
+                  )}
+                  Submit
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     );
   }
 };
+
+export default ForgotPassword;
