@@ -78,7 +78,7 @@ const data = {
     },
   ],
   navMain: [
-    { title: "Dashboard", url: "/home", icon: LayoutDashboard },
+    { title: "Dashboard", url: "/", icon: LayoutDashboard },
     { title: "Calendar", url: "/calendar", icon: Calendar },
     { title: "Projects", url: "/projects", icon: FolderKanban },
     { title: "Tasks", url: "/tasks", icon: CircleCheckBig },
